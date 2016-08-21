@@ -3,7 +3,9 @@
 import os,sys
 import time
 import BaseHTTPServer
+import SimpleHTTPServer
 import urlparse
+import ssl
 
 
 config_file = open('gate.ini').read()
@@ -33,6 +35,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 if __name__ == '__main__':
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
+    # httpds = BaseHTTPServer.HTTPServer((HOST_NAME, 4443), SimpleHTTPServer.SimpleHTTPRequestHandler)
+    # httpds.socket = ssl.wrap_socket (httpd.socket, certfile='./server.pem', server_side=True)
+    # httpds.serve_forever()
     print "LynxGate Started ..."
     try:
         httpd.serve_forever()
