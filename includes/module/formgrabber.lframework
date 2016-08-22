@@ -1,6 +1,4 @@
 var query = "";
-server_web = "http://127.0.0.1:9000"
-gate_page = "/gate.php"
 var x = 0;
 if(typeof $('form')[0] != undefined){
     $('form').each(function(index, value)
