@@ -8,7 +8,7 @@ import urlparse
 import ssl
 
 
-config_file = open('gate.ini').read()
+config_file = open('config.ini').read()
 HOST_NAME = config_file.split('SERVER_IP=')[1].split('#')[0]
 PORT_NUMBER = int(config_file.split('SERVER_PORT=')[1].split('#')[0])
 

